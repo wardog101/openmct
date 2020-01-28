@@ -23,6 +23,7 @@
         </div>
         <span v-if="!condition.isDefault"
               class="is-enabled c-c__duplicate"
+              @click="cloneCondition"
         ></span>
         <span v-if="!condition.isDefault"
               class="is-enabled c-c__trash"
@@ -257,6 +258,12 @@ export default {
         },
         removeCondition(ev) {
             this.$emit('remove-condition', this.conditionIdentifier);
+        },
+        cloneCondition(ev) {
+            this.$emit('clone-condition', {
+                identifier: this.conditionIdentifier,
+                index: Number(ev.target.closest('.widget-condition').getAttribute('data-condition-index'))
+            });
         },
         setOutput() {
             if (this.condition.definition.output !== 'false' && this.condition.definition.output !== 'true') {
