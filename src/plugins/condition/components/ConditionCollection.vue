@@ -47,10 +47,12 @@
                                        @remove-condition="removeCondition"
                                        @condition-result-updated="handleConditionResult"
                                        @set-move-index="setMoveIndex"
+                                       :telemetry="telemetryObjs"
                         />
                     </div>
                     <div v-else>
                         <Condition :condition-identifier="conditionIdentifier"
+                                   @condition-result-updated="handleConditionResult"
                                    :current-condition-identifier="currentConditionIdentifier"
                         />
                     </div>
@@ -83,7 +85,8 @@ export default {
             conditionCollection: [],
             conditions: [],
             currentConditionIdentifier: this.currentConditionIdentifier || {},
-            moveIndex: null
+            moveIndex: null,
+            telemetryObjs: this.telemetryObjs
         };
     },
     destroyed() {
@@ -95,6 +98,7 @@ export default {
         this.instantiate = this.openmct.$injector.get('instantiate');
         this.composition = this.openmct.composition.get(this.domainObject);
         this.composition.on('add', this.addTelemetry);
+        this.composition.on('remove', this.removeTelemetry);
         this.composition.load();
         this.conditionCollection = this.domainObject.configuration ? this.domainObject.configuration.conditionCollection : [];
         if (!this.conditionCollection.length) {
@@ -168,6 +172,16 @@ export default {
         addTelemetry(telemetryDomainObject) {
             this.telemetryObjs.push(telemetryDomainObject);
         },
+        removeTelemetry(telemetryDomainObjectIdentifier) {
+            let index = _.findIndex(this.telemetryObjs, (obj) => {
+                let objId = this.openmct.objects.makeKeyString(obj.identifier);
+                let id = this.openmct.objects.makeKeyString(telemetryDomainObjectIdentifier);
+                return objId === id;
+            });
+            if (index > -1) {
+                this.telemetryObjs.splice(index, 1);
+            }
+        },
         addCondition(event, isDefault) {
             let conditionDO = this.getConditionDomainObject(!!isDefault);
             //persist the condition DO so that we can do an openmct.objects.get on it and only persist the identifier in the conditionCollection of conditionSet
@@ -192,8 +206,8 @@ export default {
                     criteria: isDefault ? [] : [{
                         operation: '',
                         input: '',
-                        metaDataKey: this.openmct.telemetry.getMetadata(this.telemetryObjs[0]).values()[0].key,
-                        key: this.telemetryObjs.length ? this.openmct.objects.makeKeyString(this.telemetryObjs[0].identifier) : null
+                        metaDataKey: '',
+                        key: ''
                     }]
                 },
                 summary: 'summary description'
