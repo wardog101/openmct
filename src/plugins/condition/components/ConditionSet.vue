@@ -49,24 +49,20 @@ export default {
     },
     data() {
         return {
-            currentCondition: this.currentCondition
+            currentCondition: undefined
         }
     },
     mounted() {
-        let conditionCollection = this.domainObject.configuration.conditionCollection;
-        this.currentConditionIdentifier = conditionCollection.length ? this.updateCurrentCondition(conditionCollection[0]) : null;
+        const conditionCollection = this.domainObject.configuration.conditionCollection;
+        if (conditionCollection && conditionCollection.length) {
+            this.updateCurrentCondition(conditionCollection[0]);
+        }
     },
     methods: {
-        setCurrentCondition() {
-            if (this.currentConditionIdentifier) {
-                this.openmct.objects.get(this.currentConditionIdentifier).then((obj) => {
-                    this.currentCondition = obj;
-                });
-            }
-        },
         updateCurrentCondition(conditionIdentifier) {
-            this.currentConditionIdentifier = conditionIdentifier;
-            this.setCurrentCondition();
+            this.openmct.objects.get(conditionIdentifier).then(obj => {
+                this.currentCondition = obj;
+            });
         }
     }
 };
